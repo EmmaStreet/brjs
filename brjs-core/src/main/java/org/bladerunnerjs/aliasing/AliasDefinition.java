@@ -9,6 +9,10 @@ public class AliasDefinition {
 		this.name = name;
 		this.className = className;
 		this.interfaceName = interfaceName;
+		
+		if(className == null) {
+			throw new RuntimeException("AliasDefinition constructed with a null class name");
+		}
 	}
 	
 	public String getInterfaceName() {
