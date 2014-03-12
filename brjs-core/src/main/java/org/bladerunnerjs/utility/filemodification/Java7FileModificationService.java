@@ -49,12 +49,9 @@ public class Java7FileModificationService implements FileModificationService, Ru
 	public void run() {
 		try {
 			while(running) {
-				System.out.println(">>> Java7FileModificationService (in)");
-				
 				for(Java7FileModificationInfo fileModificationInfo : fileModificationInfos.values()) {
 					fileModificationInfo.doPoll();
 				}
-				System.out.println("<<< Java7FileModificationService (out)");
 				
 				Thread.sleep(100);
 			}

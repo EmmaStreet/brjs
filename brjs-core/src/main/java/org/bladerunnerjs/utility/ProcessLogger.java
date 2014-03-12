@@ -50,8 +50,6 @@ public class ProcessLogger {
 						try {
 							Thread.sleep(SLEEP_TIME);
 							
-							System.out.println(">>> ProcessLogger (in)");
-							
 							String nextLine;
 							
 							do {
@@ -61,8 +59,6 @@ public class ProcessLogger {
 									streamLogger.log(processName + nextLine);
 								}
 							} while(nextLine != null);
-							
-							System.out.println("<<< ProcessLogger (out)");
 						}
 						catch (InterruptedException threadException) {
 							logger.error(processName + "logging thread interupted: " + threadException.getMessage());

@@ -56,8 +56,6 @@ public class AppDeploymentFileWatcher extends Thread
 	{
 		while(running)
 		{
-			System.out.println(">>> AppDeploymentFileWatcher (in)");
-			
 			try
 			{
 				for (FileIterator watchDirIterator : watchDirIterators)
@@ -70,8 +68,6 @@ public class AppDeploymentFileWatcher extends Thread
 			{
 				logger.warn(WATCHING_INTERUPTED_MSG, this.getClass().getSimpleName());
 			}
-			
-			System.out.println("<<< AppDeploymentFileWatcher (out)");
 		}
 	}
 	
