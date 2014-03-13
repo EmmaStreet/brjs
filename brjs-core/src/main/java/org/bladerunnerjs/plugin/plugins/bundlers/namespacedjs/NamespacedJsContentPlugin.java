@@ -176,7 +176,6 @@ public class NamespacedJsContentPlugin extends AbstractContentPlugin
 				{
 					List<SourceModule> processedGlobalizedSourceModules = calculateGlobalizedClasses(bundleSet);
 					writer.write(getExtraGlobalizedClassesContent(bundleSet, processedGlobalizedSourceModules));
-					writer.write("\ncaplin.onLoad();\n");
 				}
 			}
 			else
