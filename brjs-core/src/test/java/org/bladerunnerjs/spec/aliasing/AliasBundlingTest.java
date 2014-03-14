@@ -42,7 +42,7 @@ public class AliasBundlingTest extends SpecTest {
 	}
 	
 	@Test
-	public void weBundleAClassIfItsAliasIsReferredToInTheIndexPage() throws Exception {
+	public void weBundleAClassWhoseAliasIsReferredToInTheIndexPage() throws Exception {
 		given(aspect).hasClass("appns.Class1")
 			.and(aspectAliasesFile).hasAlias("the-alias", "appns.Class1")
 			.and(aspect).indexPageRefersTo("the-alias");
@@ -50,20 +50,10 @@ public class AliasBundlingTest extends SpecTest {
 		then(response).containsClasses("appns.Class1");
 	}
 	
-	@Test
-	public void weAlsoBundleAClassIfTheAliasIsDefinedInABladeAliasDefinitionsXml() throws Exception {
-		given(appConf).hasRequirePrefix("appns")
-			.and(aspect).hasClass("appns.Class1")
-			.and(bladeAliasDefinitionsFile).hasAlias("appns.bs.b1.the-alias", "appns.Class1")
-			.and(aspect).indexPageRefersTo("\"appns.bs.b1.the-alias\"");
-		when(app).requestReceived("/default-aspect/js/dev/en_GB/combined/bundle.js", response);
-		then(response).containsClasses("appns.Class1");
-	}
-	
 	// TODO: get this class working once we add support for requiring aliases (Adam I suggests we can do the same for services and HTML templates too)
 	@Ignore
 	@Test
-	public void weBundleAClassIfItsAliasIsReferredToFromAnotherNodeJsClass() throws Exception {
+	public void weBundleAClassWhoseAliasIsReferredToFromANodeJsClass() throws Exception {
 		given(aspect).hasClasses("appns.Class1", "appns.Class2")
 			.and(aspectAliasesFile).hasAlias("the-alias", "appns.Class2")
 			.and(aspect).indexPageRefersTo("appns.Class1")
@@ -73,7 +63,7 @@ public class AliasBundlingTest extends SpecTest {
 	}
 	
 	@Test
-	public void weBundleAClassIfItsAliasIsReferredToFromAnotherNamespacedClass() throws Exception {
+	public void weBundleAClassWhoseAliasIsReferredToFromANamespacedClass() throws Exception {
 		given(aspect).hasNamespacedJsPackageStyle()
 			.and(aspect).hasClasses("appns.Class1", "appns.Class2")
 			.and(aspectAliasesFile).hasAlias("the-alias", "appns.Class2")
@@ -81,6 +71,16 @@ public class AliasBundlingTest extends SpecTest {
 			.and(aspect).classRefersTo("appns.Class1", "the-alias");
 		when(app).requestReceived("/default-aspect/js/dev/en_GB/combined/bundle.js", response);
 		then(response).containsClasses("appns.Class1", "appns.Class2");
+	}
+	
+	@Test
+	public void bundlingWorksForAliasesDefinedAtTheBladeLevel() throws Exception {
+		given(appConf).hasRequirePrefix("appns")
+			.and(aspect).hasClass("appns.Class1")
+			.and(bladeAliasDefinitionsFile).hasAlias("appns.bs.b1.the-alias", "appns.Class1")
+			.and(aspect).indexPageRefersTo("\"appns.bs.b1.the-alias\"");
+		when(app).requestReceived("/default-aspect/js/dev/en_GB/combined/bundle.js", response);
+		then(response).containsClasses("appns.Class1");
 	}
 	
 	@Test
