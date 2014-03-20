@@ -132,7 +132,7 @@ public class StandardJsLib extends AbstractAssetContainer implements JsLib
 	
 	@Override
 	public boolean isNamespaceEnforced() {
-		return true;
+		return false;
 	}
 	
 	@Override
