@@ -65,8 +65,11 @@ public class TrieBasedDependenciesCalculator
 				for(Object match : getTrie().getMatches(reader)) {
 					if (match instanceof SourceModuleReference) {
 						SourceModuleReference sourceModuleReference = (SourceModuleReference) match;
-						String dependencyRequirePath = sourceModuleReference.getRequirePath();
-						dependentSourceModules.add( assetLocation.sourceModule(dependencyRequirePath) );
+						SourceModule sourceModule = assetLocation.sourceModule(sourceModuleReference.getRequirePath());
+						
+						if(sourceModule != asset) {
+							dependentSourceModules.add(sourceModule);
+						}
 					}
 					else if (match instanceof AliasReference){
 						AliasReference aliasReference = (AliasReference) match;
@@ -112,17 +115,16 @@ public class TrieBasedDependenciesCalculator
 					
 					for(AliasOverride aliasOverride : bundlableNode.aliasesFile().aliasOverrides()) {
 						if(!trie.containsKey(aliasOverride.getName())) {
-							addToTrie(trie, "'" + aliasOverride.getName() + "'", new AliasReference(aliasOverride.getName()));
-							addToTrie(trie, "\"" + aliasOverride.getName() + "\"", new AliasReference(aliasOverride.getName()));
+							addQuotedKeyToTrie(trie, aliasOverride.getName(), new AliasReference(aliasOverride.getName()));
 						}
 					}
 				}
 				
 				for(SourceModule sourceModule : assetContainer.sourceModules()) {
 					if (!sourceModule.getAssetPath().equals(asset.getAssetPath())) {
-						addToTrie(trie, sourceModule.getRequirePath(), new SourceModuleReference(sourceModule.getRequirePath()));
-						if (sourceModule.getClassname() != null)
-						{
+						addQuotedKeyToTrie(trie, sourceModule.getRequirePath(), new SourceModuleReference(sourceModule.getRequirePath()));
+						
+						if (sourceModule.getClassname() != null) {
 							addToTrie(trie, sourceModule.getClassname(), new SourceModuleReference(sourceModule.getRequirePath()));
 						}
 					}
@@ -131,8 +133,7 @@ public class TrieBasedDependenciesCalculator
 				for(AssetLocation assetLocation : assetContainer.assetLocations()) {
 					for(String aliasName : assetLocation.aliasDefinitionsFile().aliasNames()) {
 						if(!trie.containsKey("'" + aliasName + "'")) {
-							addToTrie(trie, "'" + aliasName + "'", new AliasReference(aliasName));
-							addToTrie(trie, "\"" + aliasName + "\"", new AliasReference(aliasName));
+							addQuotedKeyToTrie(trie, aliasName, new AliasReference(aliasName));
 						}
 					}
 				}
@@ -143,6 +144,17 @@ public class TrieBasedDependenciesCalculator
 		}
 		
 		return trie;
+	}
+	
+	private void addQuotedKeyToTrie(Trie<Object> trie, String key, Object value) throws EmptyTrieKeyException {
+		addToTrie(trie, "'" + key + "'", value);
+		addToTrie(trie, "\"" + key + "\"", value);
+		addToTrie(trie, "<" + key + ">", value);
+		addToTrie(trie, "<" + key + "/", value);
+		addToTrie(trie, "<" + key + " ", value);
+		addToTrie(trie, "<" + key + "\t", value);
+		addToTrie(trie, "<" + key + "\r", value);
+		addToTrie(trie, "<" + key + "\n", value);
 	}
 	
 	private void addToTrie(Trie<Object> trie, String key, Object value) throws EmptyTrieKeyException

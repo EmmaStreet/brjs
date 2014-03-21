@@ -1,5 +1,6 @@
 package org.bladerunnerjs.utility.deps;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,7 +11,6 @@ import org.bladerunnerjs.aliasing.AliasOverride;
 import org.bladerunnerjs.aliasing.aliasdefinitions.AliasDefinitionsFile;
 import org.bladerunnerjs.model.AssetContainer;
 import org.bladerunnerjs.model.AssetLocation;
-import org.bladerunnerjs.model.BrowsableNode;
 import org.bladerunnerjs.model.BundlableNode;
 import org.bladerunnerjs.model.BundleSet;
 import org.bladerunnerjs.model.LinkedAsset;
@@ -20,8 +20,8 @@ import org.bladerunnerjs.model.exception.RequirePathException;
 import org.bladerunnerjs.model.exception.request.ContentFileProcessingException;
 
 public class DependencyInfoFactory {
-	public static DependencyInfo buildForwardDependencyMap(BrowsableNode browsableNode) throws ModelOperationException {
-		return buildDependencyGraphFromBundleSet(browsableNode.getBundleSet(), new DependencyAdder() {
+	public static DependencyInfo buildForwardDependencyMap(BundlableNode bundlableNode) throws ModelOperationException {
+		return buildDependencyGraphFromBundleSet(bundlableNode.getBundleSet(), new DependencyAdder() {
 			@Override
 			public void add(DependencyInfo dependencies, LinkedAsset sourceAsset, LinkedAsset targetAsset) {
 				addDependency(dependencies, sourceAsset, targetAsset);
@@ -29,8 +29,8 @@ public class DependencyInfoFactory {
 		});
 	}
 	
-	public static DependencyInfo buildReverseDependencyMap(BrowsableNode browsableNode, SourceModule sourceModule) throws ModelOperationException {
-		BundleSet bundleSet = browsableNode.getBundleSet();
+	public static DependencyInfo buildReverseDependencyMap(BundlableNode bundlableNode, SourceModule sourceModule) throws ModelOperationException {
+		BundleSet bundleSet = bundlableNode.getBundleSet();
 		DependencyAdder dependencyAdder = new DependencyAdder() {
 			@Override
 			public void add(DependencyInfo dependencyInfo, LinkedAsset sourceAsset, LinkedAsset targetAsset) {
@@ -105,7 +105,7 @@ public class DependencyInfoFactory {
 	
 	private static void addSourceModuleDependencies(DependencyAdder dependencyAdder, BundlableNode bundlableNode,
 		DependencyInfo dependencyInfo, SourceModule sourceModule) throws ModelOperationException {
-		addDependencies(dependencyAdder, dependencyInfo, sourceModule, sourceModule.getOrderDependentSourceModules(bundlableNode));
+		addOrderedDependencies(dependencyAdder, dependencyInfo, sourceModule, sourceModule.getOrderDependentSourceModules(bundlableNode));
 		addDependencies(dependencyAdder, dependencyInfo, sourceModule, sourceModule.getDependentSourceModules(bundlableNode));
 		addInboundAliasDependencies(dependencyAdder, dependencyInfo, bundlableNode, sourceModule);
 		
@@ -118,6 +118,18 @@ public class DependencyInfoFactory {
 				addInboundAliasDependencies(dependencyAdder, dependencyInfo, bundlableNode, assetLocationLinkedAsset);
 			}
 		}
+	}
+	
+	private static void addOrderedDependencies(DependencyAdder dependencyAdder, DependencyInfo dependencyInfo, SourceModule sourceModule, List<SourceModule> orderDependentSourceModules) throws ModelOperationException {
+		for(SourceModule dependentSourceModule : orderDependentSourceModules) {
+			if(!dependencyInfo.staticDeps.containsKey(sourceModule)) {
+				dependencyInfo.staticDeps.put(sourceModule, new HashSet<LinkedAsset>());
+			}
+			
+			dependencyInfo.staticDeps.get(sourceModule).add(dependentSourceModule);
+		}
+		
+		addDependencies(dependencyAdder, dependencyInfo, sourceModule, orderDependentSourceModules);
 	}
 	
 	private static void addDependencies(DependencyAdder dependencyAdder, DependencyInfo dependencyInfo, LinkedAsset sourceAsset, List<SourceModule> targetAssets) throws ModelOperationException {
