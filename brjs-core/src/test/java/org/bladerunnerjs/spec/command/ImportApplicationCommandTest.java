@@ -93,7 +93,8 @@ public class ImportApplicationCommandTest extends SpecTest
 	@Test 
 	public void importsZippedAppToANewAppNameWithSpacesThrowsException() throws Exception
 	{
-		given(brjs).containsFile("sdk/import.zip");
+		given(brjs).containsFile("sdk/import.zip")
+			.and(existingApp).hasBeenCreated();
 		when(brjs).runCommand("import-app", "import.zip", "my app", "brx");
 		then(exceptions).verifyException(InvalidDirectoryNameException.class, unquoted("'my app' is not a valid directory name"))
 			.whereTopLevelExceptionIs(CommandOperationException.class);
