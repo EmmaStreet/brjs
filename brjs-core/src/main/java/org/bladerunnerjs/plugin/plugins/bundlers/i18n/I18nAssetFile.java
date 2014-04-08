@@ -9,11 +9,11 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.model.Asset;
 import org.bladerunnerjs.model.AssetFileInstantationException;
 import org.bladerunnerjs.model.AssetLocation;
 import org.bladerunnerjs.model.exception.ConfigException;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.model.exception.RequirePathException;
 import org.bladerunnerjs.utility.RelativePathUtility;
 import org.bladerunnerjs.utility.UnicodeReader;

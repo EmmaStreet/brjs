@@ -2,7 +2,6 @@ package org.bladerunnerjs.spec.aliasing;
 
 import org.bladerunnerjs.aliasing.AmbiguousAliasException;
 import org.bladerunnerjs.aliasing.IncompleteAliasException;
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.aliasing.UnresolvableAliasException;
 import org.bladerunnerjs.aliasing.aliasdefinitions.AliasDefinitionsFile;
 import org.bladerunnerjs.aliasing.aliases.AliasesFile;
@@ -10,6 +9,7 @@ import org.bladerunnerjs.model.App;
 import org.bladerunnerjs.model.Aspect;
 import org.bladerunnerjs.model.Blade;
 import org.bladerunnerjs.model.Bladeset;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.model.exception.request.ContentFileProcessingException;
 import org.bladerunnerjs.testing.specutility.engine.SpecTest;
 import org.junit.Before;

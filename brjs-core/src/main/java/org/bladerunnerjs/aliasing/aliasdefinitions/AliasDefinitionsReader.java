@@ -12,11 +12,11 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.bladerunnerjs.aliasing.AliasDefinition;
 import org.bladerunnerjs.aliasing.AliasOverride;
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.aliasing.SchemaConverter;
 import org.bladerunnerjs.aliasing.SchemaCreationException;
 import org.bladerunnerjs.model.AssetContainer;
 import org.bladerunnerjs.model.exception.ConfigException;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.model.exception.request.ContentFileProcessingException;
 import org.bladerunnerjs.utility.UnicodeReader;
 import org.bladerunnerjs.utility.XmlStreamReaderFactory;

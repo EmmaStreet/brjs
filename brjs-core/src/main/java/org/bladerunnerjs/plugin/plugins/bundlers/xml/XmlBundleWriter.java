@@ -16,8 +16,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.model.Asset;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.model.exception.RequirePathException;
 import org.bladerunnerjs.model.exception.request.ContentFileProcessingException;
 import org.bladerunnerjs.model.exception.request.ContentProcessingException;

@@ -1,11 +1,11 @@
 package org.bladerunnerjs.spec.plugin.bundler.i18n;
 
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.model.App;
 import org.bladerunnerjs.model.Aspect;
 import org.bladerunnerjs.model.Blade;
 import org.bladerunnerjs.model.Bladeset;
 import org.bladerunnerjs.model.Workbench;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.testing.specutility.engine.SpecTest;
 import org.junit.Before;
 import org.junit.Test;

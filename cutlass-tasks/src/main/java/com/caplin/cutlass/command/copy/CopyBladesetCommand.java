@@ -12,10 +12,10 @@ import org.bladerunnerjs.model.BRJS;
 import org.bladerunnerjs.model.exception.command.CommandOperationException;
 import org.bladerunnerjs.model.exception.command.CommandArgumentsException;
 import org.bladerunnerjs.plugin.base.AbstractCommandPlugin;
+import org.bladerunnerjs.plugin.plugins.utility.Renamer;
 
 import com.caplin.cutlass.CutlassConfig;
 import com.caplin.cutlass.command.LegacyCommandPlugin;
-import com.caplin.cutlass.command.importing.Renamer;
 import com.caplin.cutlass.util.FileUtility;
 import com.caplin.cutlass.structure.AppStructureVerifier;
 import com.caplin.cutlass.structure.RequirePrefixCalculator;

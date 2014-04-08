@@ -3,8 +3,8 @@ package org.bladerunnerjs.model;
 import java.io.File;
 import java.util.List;
 
-import org.bladerunnerjs.aliasing.NamespaceException;
 import org.bladerunnerjs.aliasing.aliasdefinitions.AliasDefinitionsFile;
+import org.bladerunnerjs.model.exception.NamespaceException;
 import org.bladerunnerjs.model.exception.RequirePathException;
 import org.bladerunnerjs.plugin.AssetPlugin;
 
