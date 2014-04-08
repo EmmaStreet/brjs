@@ -11,4 +11,8 @@ public class InvalidRootPackageNameException extends InvalidNameException {
 	public InvalidRootPackageNameException(Node node, String packageName) {
 		super("'" + packageName + "' within node at path '" + node.dir().getPath() + "' is not a valid root package name");
 	}
+	
+	public InvalidRootPackageNameException(String packageName) {
+		super("'" + packageName + "' is not a valid root package name");
+	}
 }

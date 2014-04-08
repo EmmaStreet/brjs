@@ -3,13 +3,18 @@ package org.bladerunnerjs.plugin.plugins.commands.standard;
 import java.io.File;
 import java.util.zip.ZipFile;
 
+import javax.naming.InvalidNameException;
+
 import org.bladerunnerjs.model.App;
 import org.bladerunnerjs.model.BRJS;
 import org.bladerunnerjs.model.exception.command.CommandOperationException;
 import org.bladerunnerjs.model.exception.command.CommandArgumentsException;
 import org.bladerunnerjs.model.exception.command.NodeAlreadyExistsException;
+import org.bladerunnerjs.model.exception.name.InvalidDirectoryNameException;
+import org.bladerunnerjs.model.exception.name.InvalidRootPackageNameException;
 import org.bladerunnerjs.plugin.utility.command.ArgsParsingCommandPlugin;
 import org.bladerunnerjs.utility.FileUtility;
+import org.bladerunnerjs.utility.NameValidator;
 
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
@@ -61,17 +66,19 @@ public class ImportApplicationCommand extends ArgsParsingCommandPlugin
 				
 		if(!appToImport.exists()) throw new CommandOperationException("Unable to find app-zip '" + appZipPath + "'");
 		if(!appToImport.getPath().endsWith(".zip")) throw new CommandOperationException("The provided zip file didn't have a .zip suffix: '" + appToImport.getAbsolutePath() + "'.");
-		if(!appAlreadyExists(newApplicationName)) throw new NodeAlreadyExistsException(brjs.app(newApplicationName), this);
+		if(appAlreadyExists(newApplicationName)) throw new NodeAlreadyExistsException(brjs.app(newApplicationName), this);
 		
 		try
 		{
+			// Validation
+			if(!NameValidator.isValidDirectoryName(newApplicationName)) throw new InvalidDirectoryNameException(newApplicationName);
+			if(!NameValidator.isValidPackageName(newApplicationNamespace)) throw new InvalidRootPackageNameException(newApplicationNamespace);
+			
 			ZipFile appZip = new ZipFile(appToImport);
 			File tempUnzipDir = FileUtility.createTemporaryDirectory("tempApplicationDir");
 			
 			FileUtility.unzip(appZip, tempUnzipDir);
 //			String currentApplicationName = importApplicationCommandUtility.getCurrentApplicationName(tempUnzipDir);
-			System.out.println("oo");
-			
 
 //			File temporaryApplicationDir = new File(temporaryDirectoryForNewApplication, currentApplicationName);
 //			

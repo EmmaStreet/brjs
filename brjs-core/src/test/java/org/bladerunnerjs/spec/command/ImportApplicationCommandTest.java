@@ -10,6 +10,9 @@ import org.bladerunnerjs.model.exception.command.ArgumentParsingException;
 import org.bladerunnerjs.model.exception.command.CommandArgumentsException;
 import org.bladerunnerjs.model.exception.command.CommandOperationException;
 import org.bladerunnerjs.model.exception.command.NodeAlreadyExistsException;
+import org.bladerunnerjs.model.exception.name.InvalidDirectoryNameException;
+import org.bladerunnerjs.model.exception.name.InvalidRootPackageNameException;
+import org.bladerunnerjs.plugin.plugins.commands.standard.ExportApplicationCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.ImportApplicationCommand;
 import org.bladerunnerjs.testing.specutility.engine.SpecTest;
 
@@ -22,13 +25,18 @@ public class ImportApplicationCommandTest extends SpecTest
 	@Before
 	public void setUp() throws Exception
 	{
-		given(brjs).hasCommands(new ImportApplicationCommand())
+		given(brjs).hasCommands(new ImportApplicationCommand(), new ExportApplicationCommand())
 			.and(brjs).automaticallyFindsBundlers()
 			.and(brjs).automaticallyFindsMinifiers()
 			.and(brjs).hasBeenCreated();
 		app = brjs.app("app1");
 		existingApp = brjs.app("existingApp");
 		aspect = app.aspect("default");
+		
+		// createAppThatCanBeExported
+		
+		
+		
 		
 	}
 
@@ -72,6 +80,110 @@ public class ImportApplicationCommandTest extends SpecTest
 		then(exceptions).verifyException(NodeAlreadyExistsException.class, unquoted("App 'existingApp' already exists"));
 	}
 
+	// validation
+	@Test
+	public void importsZippedAppToANewAppNameWithSpecialCharsThrowsException() throws Exception
+	{	
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "cr�dit", "brx");
+		then(exceptions).verifyException(InvalidDirectoryNameException.class, unquoted("'cr�dit' is not a valid directory name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+
+	@Test 
+	public void importsZippedAppToANewAppNameWithSpacesThrowsException() throws Exception
+	{
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "my app", "brx");
+		then(exceptions).verifyException(InvalidDirectoryNameException.class, unquoted("'my app' is not a valid directory name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+	
+//	@Test
+//	public void importsZippedAppToANewAppNameWithANumber() throws Exception
+//	{
+//		given(brjs).containsFile("sdk/import.zip");
+//		when(brjs).runCommand("import-app", "import.zip", "myapp2", "brx");
+//		TODO assert appName
+//	}
+//
+//	@Test
+//	public void importsZippedAppToANewAppNameWithAnUnderscore() throws Exception
+//	{
+//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader_new", "novox" });
+//	}
+
+//	@Test
+//	public void importsZippedAppToANewAppNameWithAHyphen() throws Exception
+//	{
+//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novo-trader", "novox" });
+//	}
+//	
+
+	// <app-namespace> exception test cases 
+	@Test
+	public void importsZippedAppToANewNamespaceWithSpecialCharsThrowsException() throws Exception
+	{
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "myimportedapp", "novo�");
+		then(exceptions).verifyException(InvalidRootPackageNameException.class, unquoted("'novo�' is not a valid root package name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+	
+	@Test 
+	public void commandThrowsExceptionIfAppNamespaceHasUnderscore() throws Exception
+	{
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "myimportedapp", "br_x");
+		then(exceptions).verifyException(InvalidRootPackageNameException.class, unquoted("'br_x' is not a valid root package name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+
+	
+	@Test 
+	public void importsZippedAppToANewNamespaceWithAHyphenThrowsException() throws Exception
+	{
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "myimportedapp", "br-x");
+		then(exceptions).verifyException(InvalidRootPackageNameException.class, unquoted("'br-x' is not a valid root package name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+	
+	@Test
+	public void importsZippedAppToANewNamespaceWithSpacesThrowsException() throws Exception
+	{
+		given(brjs).containsFile("sdk/import.zip");
+		when(brjs).runCommand("import-app", "import.zip", "myimportedapp", "br x");
+		then(exceptions).verifyException(InvalidRootPackageNameException.class, unquoted("'br x' is not a valid root package name"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
+	}
+
+//	TODO: No longer valid?
+//	@Test
+//	public void importsZippedAppToANewNamespaceWithReservedCaplinNamespaceThrowsException() throws Exception
+//	{
+//		given(brjs).containsFile("sdk/import.zip");
+//		when(brjs).runCommand("import-app", "import.zip", "myimportedapp", "caplin");
+//		then(exceptions).verifyException(InvalidRootPackageNameException.class, unquoted("'caplin' is not a valid root package name"))
+//			.whereTopLevelExceptionIs(CommandOperationException.class);
+//	}
+	
+//	@Test
+//	public void importsZippedAppToANewNamespaceWithANumberIsAllowed() throws Exception
+//	{
+//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "novox2" });
+//	}
+//
+
+
+//
+	
+	@Test
+	public void canImportAnApplication() throws Exception
+	{
+//		given()
+		
+	}
 //	@Test
 //	public void copiesAcrossAppConfFile() throws Exception
 //	{
@@ -87,74 +199,7 @@ public class ImportApplicationCommandTest extends SpecTest
 //		assertEquals("requirePrefix: novox", appConfLines.get(1));
 //	}
 //
-//	// <app-name> exception test cases
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewAppNameWithSpecialCharsThrowsException() throws Exception
-//	{	
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "cr�dit", "novox" });
-//	}
-//
-//	@Test
-//	public void importsZippedAppToANewAppNameWithANumber() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader2", "novox" });
-//	}
-//
-//	@Test
-//	public void importsZippedAppToANewAppNameWithAnUnderscore() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader_new", "novox" });
-//	}
-//
-//	@Test
-//	public void importsZippedAppToANewAppNameWithAHyphen() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novo-trader", "novox" });
-//	}
-//	
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewAppNameWithSpacesThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novo trader", "novox" });
-//	}
-//
-//	// <app-namespace> exception test cases 
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewNamespaceWithSpecialCharsThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "novo�" });
-//	}
-//
-//	@Test
-//	public void importsZippedAppToANewNamespaceWithANumberIsAllowed() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "novox2" });
-//	}
-//
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewNamespaceWithAnUnderscoreThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "nov_ox" });
-//	}
-//
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewNamespaceWithAHyphenThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "nov-ox" });
-//	}
-//	
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewNamespaceWithSpacesThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "nov ox" });
-//	}
-//
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importsZippedAppToANewNamespaceWithReservedCaplinNamespaceThrowsException() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "caplin" });
-//	}
-//
+
 //	@Test 
 //	public void zippedApplicationWithParentFolderHasSpacesCanBeImported() throws Exception
 //	{
@@ -174,35 +219,7 @@ public class ImportApplicationCommandTest extends SpecTest
 //		assertTrue(appDirectory.exists());
 //	}
 //
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importZippedApplicationPassingTooManyParameters() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "novox", "novox2" });
-//	}
-//
-//	@Test (expected=CommandArgumentsException.class)
-//	public void importZippedApplicationPassingTooFewParameters() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader" });
-//	}
-//
-//	@Test (expected=CommandOperationException.class)
-//	public void importZippedApplicationPassingInAnInvalidZipFileLocation() throws Exception
-//	{	
-//		importApplicationCommand.doCommand(new String[] { "doesnotexist.zip", "novotrader", "novox" });
-//	}
-//
-//	@Test (expected=CommandOperationException.class)
-//	public void importZippedApplicationUsingAnAppNameThatAlreadyExists() throws Exception
-//	{
-//		File appDirectory = new File(applicationsDirectory, "novotrader");
-//		assertFalse(applicationsDirectory.exists());		
-//		
-//		applicationsDirectory.mkdir();
-//		appDirectory.mkdir();
-//		
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader", "novox" });
-//	}
+
 	
 //	@Ignore //TODO: this test should be in the CT3 plugin
 //	@Test

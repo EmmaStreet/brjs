@@ -11,4 +11,8 @@ public class InvalidDirectoryNameException extends InvalidNameException {
 	public InvalidDirectoryNameException(NamedNode node) {
 		super("'" + node.getName() + "' within node at path '" + node.dir().getPath() + "' is not a valid directory name");
 	}
+	
+	public InvalidDirectoryNameException(String name) {
+		super("'" + name + "' is not a valid directory name");
+	}
 }
