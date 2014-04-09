@@ -128,7 +128,8 @@ public class RestApiService
 	public void importMotif(String appName, String requirePrefix, File appZip) throws Exception
 	{
 		ImportApplicationCommand cmd = new ImportApplicationCommand();
-		String[] args = new String[]{ appZip.getAbsolutePath(), appName, requirePrefix };		
+		String[] args = new String[]{ appZip.getAbsolutePath(), appName, requirePrefix };	
+		cmd.setBRJS(brjs);
 		doCommand( cmd, args );
 	}
 	
