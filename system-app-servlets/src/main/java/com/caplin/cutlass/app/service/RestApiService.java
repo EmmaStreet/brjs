@@ -24,12 +24,12 @@ import org.bladerunnerjs.plugin.CommandPlugin;
 import org.bladerunnerjs.plugin.plugins.commands.standard.CreateApplicationCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.CreateBladeCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.CreateBladesetCommand;
+import org.bladerunnerjs.plugin.plugins.commands.standard.ImportApplicationCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.JsDocCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.WarCommand;
 
 import com.caplin.cutlass.CutlassConfig;
 import com.caplin.cutlass.command.copy.CopyBladesetCommand;
-import com.caplin.cutlass.command.importing.ImportApplicationCommand;
 import com.caplin.cutlass.command.test.TestCommand;
 import com.caplin.cutlass.command.test.testrunner.TestRunnerController;
 import com.caplin.cutlass.structure.model.SdkModel;
@@ -127,7 +127,7 @@ public class RestApiService
 	
 	public void importMotif(String appName, String requirePrefix, File appZip) throws Exception
 	{
-		ImportApplicationCommand cmd = new ImportApplicationCommand( brjs );
+		ImportApplicationCommand cmd = new ImportApplicationCommand();
 		String[] args = new String[]{ appZip.getAbsolutePath(), appName, requirePrefix };		
 		doCommand( cmd, args );
 	}

@@ -1,25 +1,31 @@
 package org.bladerunnerjs.spec.command;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.bladerunnerjs.model.App;
 import org.bladerunnerjs.model.Aspect;
+import org.bladerunnerjs.model.Blade;
+import org.bladerunnerjs.model.Bladeset;
 import org.bladerunnerjs.model.exception.command.ArgumentParsingException;
 import org.bladerunnerjs.model.exception.command.CommandArgumentsException;
 import org.bladerunnerjs.model.exception.command.CommandOperationException;
 import org.bladerunnerjs.model.exception.command.NodeAlreadyExistsException;
 import org.bladerunnerjs.model.exception.name.InvalidDirectoryNameException;
 import org.bladerunnerjs.model.exception.name.InvalidRootPackageNameException;
+import org.bladerunnerjs.plugin.plugins.bundlers.namespacedjs.NamespacedJsContentPlugin;
 import org.bladerunnerjs.plugin.plugins.commands.standard.ExportApplicationCommand;
 import org.bladerunnerjs.plugin.plugins.commands.standard.ImportApplicationCommand;
 import org.bladerunnerjs.testing.specutility.engine.SpecTest;
 
 public class ImportApplicationCommandTest extends SpecTest
 {
-	private App app, existingApp;
-	private Aspect aspect;
+	private App app, testApp;
+	private Aspect aspect, testAppAspect;
+	private Bladeset testAppBladeset;
+	private Blade testAppBlade;
 	
 	
 	@Before
@@ -30,14 +36,26 @@ public class ImportApplicationCommandTest extends SpecTest
 			.and(brjs).automaticallyFindsMinifiers()
 			.and(brjs).hasBeenCreated();
 		app = brjs.app("app1");
-		existingApp = brjs.app("existingApp");
 		aspect = app.aspect("default");
 		
-		// createAppThatCanBeExported
+		testApp = brjs.app("testApp");
+		testAppAspect = testApp.aspect("default");
+		testAppBladeset = testApp.bladeset("testbs");
+		testAppBlade = testAppBladeset.blade("testblade");
 		
-		
-		
-		
+		// Create an already-existing test-app
+		given(brjs).containsFiles("sdk/libs/java/application/brjs-1.jar", "sdk/libs/java/application/brjs-2.jar")
+			.and(testApp).hasBeenCreated()
+			.and(testAppAspect).hasPackageStyle("testapp", NamespacedJsContentPlugin.JS_STYLE)
+			.and(testAppAspect).classFileHasContent("Class1", "testapp.Class1 = function() {}")
+			.and(testAppBladeset).hasPackageStyle("testapp.testbs", NamespacedJsContentPlugin.JS_STYLE)
+			.and(testAppBladeset).classFileHasContent("Class2", "testapp.testbs.Class2 = function() {}")
+			.and(testAppBlade).hasPackageStyle("testapp.testbs.testblade", NamespacedJsContentPlugin.JS_STYLE)
+			.and(testAppBlade).classFileHasContent("Class3", "testapp.testbs.testblade.Class3 = function() {}")
+			.and(testApp).containsFile("WEB-INF/lib/brjs-core.jar")
+			.and(testApp).containsFile("WEB-INF/lib/other.jar")
+			.and(testApp).containsFileWithContents("WEB-INF/jetty-env.xml", 
+					"<Set name=\"jdbcUrl\">jdbc:h2:../webcentric-db/existingApp/existingApp;IFEXISTS=TRUE;AUTO_SERVER=TRUE</Set>");
 	}
 
 	@Test
@@ -60,7 +78,8 @@ public class ImportApplicationCommandTest extends SpecTest
 	public void commandThrowsErrorIfAppZipParameterIsNotAFileOnDisk() throws Exception
 	{
 		when(brjs).runCommand("import-app", "doesnotexist.zip", "mynewapp", "brx");
-		then(exceptions).verifyException(CommandOperationException.class, unquoted("Unable to find app-zip 'doesnotexist.zip'"));
+		then(exceptions).verifyException(FileNotFoundException.class, unquoted("Unable to find app-zip 'doesnotexist.zip'"))
+			.whereTopLevelExceptionIs(CommandOperationException.class);
 	}
 	
 	@Test
@@ -76,8 +95,8 @@ public class ImportApplicationCommandTest extends SpecTest
 	public void commandThrowsAnErrorIfNewAppNameMatchesAnAlreadyExistingAppName() throws Exception
 	{
 		given(brjs).containsFile("sdk/import.zip");
-		when(brjs).runCommand("import-app", "import.zip", "existingApp", "brx");
-		then(exceptions).verifyException(NodeAlreadyExistsException.class, unquoted("App 'existingApp' already exists"));
+		when(brjs).runCommand("import-app", "import.zip", "testApp", "brx");
+		then(exceptions).verifyException(NodeAlreadyExistsException.class, unquoted("App 'testApp' already exists"));
 	}
 
 	// validation
@@ -93,35 +112,12 @@ public class ImportApplicationCommandTest extends SpecTest
 	@Test 
 	public void importsZippedAppToANewAppNameWithSpacesThrowsException() throws Exception
 	{
-		given(brjs).containsFile("sdk/import.zip")
-			.and(existingApp).hasBeenCreated();
+		given(brjs).containsFile("sdk/import.zip");
 		when(brjs).runCommand("import-app", "import.zip", "my app", "brx");
 		then(exceptions).verifyException(InvalidDirectoryNameException.class, unquoted("'my app' is not a valid directory name"))
 			.whereTopLevelExceptionIs(CommandOperationException.class);
 	}
 	
-//	@Test
-//	public void importsZippedAppToANewAppNameWithANumber() throws Exception
-//	{
-//		given(brjs).containsFile("sdk/import.zip");
-//		when(brjs).runCommand("import-app", "import.zip", "myapp2", "brx");
-//		TODO assert appName
-//	}
-//
-//	@Test
-//	public void importsZippedAppToANewAppNameWithAnUnderscore() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novotrader_new", "novox" });
-//	}
-
-//	@Test
-//	public void importsZippedAppToANewAppNameWithAHyphen() throws Exception
-//	{
-//		importApplicationCommand.doCommand(new String[] { "emptytrader.zip", "novo-trader", "novox" });
-//	}
-//	
-
-	// <app-namespace> exception test cases 
 	@Test
 	public void importsZippedAppToANewNamespaceWithSpecialCharsThrowsException() throws Exception
 	{
@@ -159,6 +155,15 @@ public class ImportApplicationCommandTest extends SpecTest
 			.whereTopLevelExceptionIs(CommandOperationException.class);
 	}
 
+	// Happy path integration
+	@Test
+	public void importsZippedAppToANewAppNameWithANumber() throws Exception
+	{
+		when(brjs).runCommand("export-app", "testApp")
+			.and(brjs).runCommand("import-app", brjs.storageDir("exported-app").getAbsolutePath() + File.separator + "testApp.zip", "mynewapp1", "impx");
+		then(brjs).hasDir("apps/mynewapp1");
+	}	
+	
 //	TODO: No longer valid?
 //	@Test
 //	public void importsZippedAppToANewNamespaceWithReservedCaplinNamespaceThrowsException() throws Exception
@@ -176,15 +181,6 @@ public class ImportApplicationCommandTest extends SpecTest
 //	}
 //
 
-
-//
-	
-	@Test
-	public void canImportAnApplication() throws Exception
-	{
-//		given()
-		
-	}
 //	@Test
 //	public void copiesAcrossAppConfFile() throws Exception
 //	{

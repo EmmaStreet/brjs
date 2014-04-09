@@ -1,12 +1,12 @@
 package org.bladerunnerjs.plugin.plugins.commands.standard;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.zip.ZipFile;
-
-import javax.naming.InvalidNameException;
 
 import org.bladerunnerjs.model.App;
 import org.bladerunnerjs.model.BRJS;
+import org.bladerunnerjs.model.events.AppImportedEvent;
 import org.bladerunnerjs.model.exception.command.CommandOperationException;
 import org.bladerunnerjs.model.exception.command.CommandArgumentsException;
 import org.bladerunnerjs.model.exception.command.NodeAlreadyExistsException;
@@ -59,30 +59,37 @@ public class ImportApplicationCommand extends ArgsParsingCommandPlugin
 	protected void doCommand(JSAPResult parsedArgs) throws CommandArgumentsException, CommandOperationException
 	{	
 		String appZipPath = parsedArgs.getString("app-zip");
-		String newApplicationName = parsedArgs.getString("new-app-name");
-		String newApplicationNamespace = parsedArgs.getString("new-app-namespace");
+		String newAppName = parsedArgs.getString("new-app-name");
+		String newAppNamespace = parsedArgs.getString("new-app-namespace");
 		
-		File appToImport = new File(brjs.file("sdk") + File.separator + appZipPath);
+		// Support absolute and relative-sdk-path
+		File appToImport = new File(appZipPath).exists() ? new File(appZipPath) : new File(brjs.sdkDir().dir() + File.separator + appZipPath);
 				
-		if(!appToImport.exists()) throw new CommandOperationException("Unable to find app-zip '" + appZipPath + "'");
-		if(!appToImport.getPath().endsWith(".zip")) throw new CommandOperationException("The provided zip file didn't have a .zip suffix: '" + appToImport.getAbsolutePath() + "'.");
-		if(appAlreadyExists(newApplicationName)) throw new NodeAlreadyExistsException(brjs.app(newApplicationName), this);
-		
 		try
 		{
 			// Validation
-			if(!NameValidator.isValidDirectoryName(newApplicationName)) throw new InvalidDirectoryNameException(newApplicationName);
-			if(!NameValidator.isValidPackageName(newApplicationNamespace)) throw new InvalidRootPackageNameException(newApplicationNamespace);
+			if(!appToImport.exists()) throw new FileNotFoundException("Unable to find app-zip '" + appZipPath + "'");
+			if(!appToImport.getPath().endsWith(".zip")) throw new CommandOperationException("The provided zip file didn't have a .zip suffix: '" + appToImport.getAbsolutePath() + "'.");
+			if(appAlreadyExists(newAppName)) throw new NodeAlreadyExistsException(brjs.app(newAppName), this);
+			if(!NameValidator.isValidDirectoryName(newAppName)) throw new InvalidDirectoryNameException(newAppName);
+			if(!NameValidator.isValidPackageName(newAppNamespace)) throw new InvalidRootPackageNameException(newAppNamespace);
 			
+			// unzip
 			ZipFile appZip = new ZipFile(appToImport);
 			File tempUnzipDir = FileUtility.createTemporaryDirectory("tempApplicationDir");
-			
 			FileUtility.unzip(appZip, tempUnzipDir);
-//			String currentApplicationName = importApplicationCommandUtility.getCurrentApplicationName(tempUnzipDir);
 
-//			File temporaryApplicationDir = new File(temporaryDirectoryForNewApplication, currentApplicationName);
-//			
-//			importApplicationCommandUtility.copyCutlassSDKJavaLibsIntoApplicationWebInfDirectory(sdkBaseDir, temporaryApplicationDir);
+			// populate WEB-INF/lib
+			File tempAppDir = new File(tempUnzipDir, getOriginalAppName(tempUnzipDir));
+			FileUtility.copyDirectoryContents(brjs.appJars().dir(), new File(tempAppDir, "WEB-INF/lib"));	// TODO use a better way to get an 'unrooted' app's WEB-INF/lib folder
+			
+			// rename stuff
+			
+			// copy to BRJS apps folder, deploy and notify observers
+			App app = brjs.app(newAppName);
+			FileUtility.copyDirectoryContents(tempAppDir, app.dir());
+			app.deploy();
+			app.notifyObservers(new AppImportedEvent(), app);
 			
 //			File newApplicationDirectory = importApplicationCommandUtility.createApplicationDirIfItDoesNotAlreadyExist(sdkBaseDir, newApplicationName);
 //			File currentApplicationDirectoryInTempDir = temporaryApplicationDir;
@@ -102,8 +109,8 @@ public class ImportApplicationCommand extends ArgsParsingCommandPlugin
 //			
 //			importApplicationCommandUtility.createAutoDeployFileForApp(newApplicationDirectory, brjs.bladerunnerConf().getJettyPort());
 			
-//			out.println("Successfully imported '" + new File(applicationZip).getName() + "' as new application '" + newApplicationName + "'");
-//			out.println(" " + newApplicationDirectory.getAbsolutePath());
+			System.out.println("Successfully imported '" + appToImport.getName() + "' as new application '" + newAppName + "'");
+			System.out.println(" " + brjs.app(newAppName).dir().getAbsolutePath());
 		}
 		catch (Exception e)
 		{
@@ -119,5 +126,15 @@ public class ImportApplicationCommand extends ArgsParsingCommandPlugin
 			if(app.getName().equals(appName)) return true; 
 		}
 		return false;
+	}
+	
+	private String getOriginalAppName(File unzippedAppDirectory) throws CommandOperationException
+	{
+		if(unzippedAppDirectory.listFiles().length > 1)
+		{
+			throw new CommandOperationException("More than one folder found at root of application zip.");
+		}
+		
+		return unzippedAppDirectory.listFiles()[0].getName();
 	}
 }

@@ -104,16 +104,17 @@ public class CopyBladesetCommand extends AbstractCommandPlugin implements Legacy
 			throw new CommandOperationException("Invalid namespace for application.",ex);
 		}
 		
-		try
-		{
-			Renamer.renameBladeset(targetBladesetDirectory, sourceApplicationNamespace + "." + sourceBladesetName, targetApplicationNamespace + "." + targetBladesetName);
+//		try
+//		{
+//			TODO Revisit this command
+//			Renamer.renameBladeset(targetBladesetDirectory, sourceApplicationNamespace + "." + sourceBladesetName, targetApplicationNamespace + "." + targetBladesetName);
 			out.println("Successfully copied " + sourceApplicationName + "/" + sourceBladesetName +
 						" to " + targetApplicationName + "/" + targetBladesetName);
-		}
-		catch (IOException e)
-		{
-			throw new CommandOperationException(e);
-		}			
+//		}
+//		catch (IOException e)
+//		{
+//			throw new CommandOperationException(e);
+//		}			
 	}
 	
 	private void assertValidArgs(String[] args) throws CommandArgumentsException

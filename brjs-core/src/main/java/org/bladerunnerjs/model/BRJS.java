@@ -57,6 +57,7 @@ public class BRJS extends AbstractBRJSRootNode
 	private final NodeMap<StandardJsLib> sdkNonBladeRunnerLibs = StandardJsLib.createSdkNonBladeRunnerLibNodeSet(this);
 	private final NodeItem<DirNode> jsPatches = new NodeItem<>(DirNode.class, "js-patches");
 	private final NodeMap<NamedDirNode> templates = new NodeMap<>(this, NamedDirNode.class, "sdk/templates", "-template$");
+	private final NodeItem<DirNode> sdkDir = new NodeItem<>(DirNode.class, "sdk");
 	private final NodeItem<DirNode> appJars = new NodeItem<>(DirNode.class, "sdk/libs/java/application");
 	private final NodeItem<DirNode> configuration = new NodeItem<>(DirNode.class, "conf");
 	private final NodeItem<DirNode> systemJars = new NodeItem<>(DirNode.class, "sdk/libs/java/system");
@@ -281,6 +282,11 @@ public class BRJS extends AbstractBRJSRootNode
 	public DirNode testResults()
 	{
 		return item(testResults);
+	}
+	
+	public DirNode sdkDir()
+	{
+		return item(sdkDir);
 	}
 	
 	public DirNode appJars()
