@@ -4,14 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
-import org.bladerunnerjs.memoization.Getter;
 import org.bladerunnerjs.memoization.MemoizedValue;
 import org.bladerunnerjs.model.AssetFileInstantationException;
 import org.bladerunnerjs.model.AssetLocationUtility;
@@ -24,14 +18,13 @@ import org.bladerunnerjs.model.SourceModulePatch;
 import org.bladerunnerjs.model.TrieBasedDependenciesCalculator;
 import org.bladerunnerjs.model.exception.ModelOperationException;
 import org.bladerunnerjs.model.exception.RequirePathException;
-import org.bladerunnerjs.model.exception.UnresolvableRequirePathException;
-import org.bladerunnerjs.utility.JsCommentStrippingReader;
 import org.bladerunnerjs.utility.RelativePathUtility;
+import org.bladerunnerjs.utility.reader.JsCommentAndCodeBlockStrippingReaderFactory;
+import org.bladerunnerjs.utility.reader.JsCommentStrippingReaderFactory;
 
 import com.Ostermiller.util.ConcatReader;
 
 public class NamespacedJsSourceModule implements SourceModule {
-	private static final Pattern extendPattern = Pattern.compile("(caplin|br\\.Core)\\.(extend|implement|inherit)\\([^,]+,\\s*([^)]+)\\)");
 	private static final String DEFINE_BLOCK = "\ndefine('%s', function(require, exports, module) { module.exports = %s; });";
 	
 	private LinkedAsset linkedAsset;
@@ -40,8 +33,8 @@ public class NamespacedJsSourceModule implements SourceModule {
 	private String className;
 	private SourceModulePatch patch;
 	private TrieBasedDependenciesCalculator dependencyCalculator;
+	private TrieBasedDependenciesCalculator staticDependencyCalculator;
 	
-	private MemoizedValue<List<SourceModule>> orderDependentSourceModulesList;
 	private MemoizedValue<List<AssetLocation>> assetLocationsList;
 	
 	@Override
@@ -56,8 +49,8 @@ public class NamespacedJsSourceModule implements SourceModule {
 			linkedAsset = new FullyQualifiedLinkedAsset();
 			linkedAsset.initialize(assetLocation, dir, assetName);
 			patch = SourceModulePatch.getPatchForRequirePath(assetLocation, getRequirePath());
-			dependencyCalculator = new TrieBasedDependenciesCalculator(this, assetFile, patch.getPatchFile());
-			orderDependentSourceModulesList = new MemoizedValue<>("NamespacedJsSourceModule.orderDependentSourceModules", assetLocation.root(), assetLocation.root().dir());
+			dependencyCalculator = new TrieBasedDependenciesCalculator(this, new JsCommentStrippingReaderFactory(), assetFile, patch.getPatchFile());
+			staticDependencyCalculator = new TrieBasedDependenciesCalculator(this, new JsCommentAndCodeBlockStrippingReaderFactory(), assetFile, patch.getPatchFile());
 			assetLocationsList = new MemoizedValue<>("NamespacedJsSourceModule.assetLocations", assetLocation.root(), assetLocation.assetContainer().dir());
 		}
 		catch(RequirePathException e) {
@@ -99,36 +92,8 @@ public class NamespacedJsSourceModule implements SourceModule {
 	}
 	
 	@Override
-	public List<SourceModule> getOrderDependentSourceModules(BundlableNode bundlableNode) throws ModelOperationException {
-		return orderDependentSourceModulesList.value(new Getter<ModelOperationException>(){
-			@Override
-			public Object get() throws ModelOperationException {
-				List<SourceModule> orderDependentSourceModules = new ArrayList<>();
-				
-				try(Reader reader = new JsCommentStrippingReader(getReader(), false)) {
-					StringWriter stringWriter = new StringWriter();
-					IOUtils.copy(reader, stringWriter);
-					Matcher matcher = extendPattern.matcher(stringWriter.toString());
-					
-					while (matcher.find()) {
-						String referencedClass = matcher.group(3);
-						String requirePath = referencedClass.replaceAll("\\.", "/");
-						
-						try {
-							orderDependentSourceModules.add(bundlableNode.getSourceModule(requirePath));
-						}
-						catch(UnresolvableRequirePathException e) {
-							// TODO: log the fact that the thing being extended was not found to be a fully qualified class name (probably a variable name), and so is being ignored for the purposes of bundling.
-						}
-					}
-				}
-				catch(IOException | RequirePathException e) {
-					throw new ModelOperationException(e);
-				}
-				
-				return orderDependentSourceModules;
-			}
-		});
+	public List<SourceModule> getOrderDependentSourceModules(BundlableNode bundlableNode) throws ModelOperationException {				
+		return staticDependencyCalculator.getCalculatedDependentSourceModules();
 	}
 	
 	@Override
