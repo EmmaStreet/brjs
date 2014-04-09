@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -91,6 +92,34 @@ public class FileUtility {
 				
 				in.close();
 			}
+		}
+	}
+	
+	public static void copyDirectoryContents(File sourceFolder , File targetLocation) throws IOException 
+	{
+		if (sourceFolder.isDirectory()) {
+			if (!targetLocation.exists()) {
+				targetLocation.mkdirs();
+			}
+			
+			String[] children = sourceFolder.list();
+			for (int i=0; i<children.length; i++) {
+				copyDirectoryContents(new File(sourceFolder, children[i]),
+						new File(targetLocation, children[i]));
+			}
+		} else {
+			
+			InputStream in = new FileInputStream(sourceFolder);
+			OutputStream out = new FileOutputStream(targetLocation);
+			
+			// Copy the bits from instream to outstream
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			in.close();
+			out.close();
 		}
 	}
 

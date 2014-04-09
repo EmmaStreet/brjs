@@ -45,35 +45,6 @@ public class FileUtility extends org.bladerunnerjs.utility.FileUtility {
 		return files;
 	}
 	
-	// Copy the contents of the assetContainer (not the actual folder itself) to targetLocation
-	public static void copyDirectoryContents(File assetContainer , File targetLocation) throws IOException 
-	{
-		if (assetContainer.isDirectory()) {
-			if (!targetLocation.exists()) {
-				targetLocation.mkdirs();
-			}
-			
-			String[] children = assetContainer.list();
-			for (int i=0; i<children.length; i++) {
-				copyDirectoryContents(new File(assetContainer, children[i]),
-						new File(targetLocation, children[i]));
-			}
-		} else {
-			
-			InputStream in = new FileInputStream(assetContainer);
-			OutputStream out = new FileOutputStream(targetLocation);
-			
-			// Copy the bits from instream to outstream
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		}
-	}
-	
 	public static void deleteDirContent(File dir) throws IOException {
 		File[] content = dir.listFiles();
 		for (int i=0; i < content.length; i++)
