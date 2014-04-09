@@ -11,21 +11,23 @@ import org.bladerunnerjs.memoization.Getter;
 import org.bladerunnerjs.memoization.MemoizedValue;
 import org.bladerunnerjs.model.exception.ModelOperationException;
 import org.bladerunnerjs.model.exception.RequirePathException;
-import org.bladerunnerjs.utility.JsCommentStrippingReader;
 import org.bladerunnerjs.utility.Trie;
+import org.bladerunnerjs.utility.reader.ReaderFactory;
 
 public class TrieBasedDependenciesCalculator
 {
 	private App app;
 	private AssetLocation assetLocation;
 	private Asset asset;
+	private final ReaderFactory readerFactory;
 	private final TrieFactory trieFactory;
 	
 	private MemoizedValue<ComputedValue> computedValue;
 	
-	public TrieBasedDependenciesCalculator(Asset asset, File... readerFiles)
+	public TrieBasedDependenciesCalculator(Asset asset, ReaderFactory readerFactory, File... readerFiles)
 	{
 		this.asset = asset;
+		this.readerFactory = readerFactory;
 		assetLocation = asset.assetLocation();
 		app = assetLocation.assetContainer().app();
 		trieFactory = TrieFactory.getFactoryForApp(app);
@@ -52,7 +54,7 @@ public class TrieBasedDependenciesCalculator
 			public Object get() throws ModelOperationException {
 				ComputedValue computedValue = new ComputedValue();
 				
-				try(Reader reader = new JsCommentStrippingReader(asset.getReader(), false)) {
+				try(Reader reader = readerFactory.createReader(asset.getReader())) {
 					Trie<Object> trie = trieFactory.createTrie();
 					
 					for(Object match : trie.getMatches(reader)) {
